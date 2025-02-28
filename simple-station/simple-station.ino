@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <WiFi.h>
+#include "esp_wifi.h"
 
 const char* funny_emoji_list[] = {
   "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾",
@@ -11,7 +9,8 @@ const char* funny_emoji_list[] = {
   "🥸", "🤓", "😈", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️"
 };
 
-const long interval = 1 * 60 * 1000;  // in minutes
+const size_t emoji_count = 5; // max - 8
+const long interval = 5 * 60 * 1000;  // in minutes
 const char* ssid = "SmartHomeGateway";
 const char* password = "0a2b3c4f";
 
@@ -19,13 +18,9 @@ void startSoftAP() {
   WiFi.softAPdisconnect(true);
   delay(2000);  // Allow time for disconnection
 
-  char randomString[32 + 1];
-  generateRandomEmojiString(randomString, 8);  // one emoji - 4 bytes
+  char randomString[(emoji_count * 4) + 1]; // one emoji - 4 bytes
+  generateRandomEmojiString(randomString, emoji_count);
 
-  // WiFi.mode(WIFI_AP_STA);
-  // WiFi.begin(ssid, password);
-
-  WiFi.mode(WIFI_AP);
   WiFi.softAP(randomString);
 }
 
@@ -54,12 +49,22 @@ void generateRandomEmojiString(char* result, size_t length) {
   result[length * 4] = '\0';  // Null-terminate the string
 }
 
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+  // someone connected, changing wifi name :)
+  startSoftAP();
+}
 
 void setup() {
-  // Serial.begin(115200);
-  // delay(100);
+  Serial.begin(115200);
+  delay(100);
   setCpuFrequencyMhz(80);
   delay(500);
+
+  // WiFi.mode(WIFI_AP_STA);
+  // WiFi.begin(ssid, password);
+  WiFi.mode(WIFI_AP);
+
+  WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STACONNECTED);
 }
 
 void loop() {
