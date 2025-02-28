@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include "esp_wifi.h"
 
-const char* funny_emoji_list[] = {
+const char* emojiList[] = {
   "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾",
   "👍", "👌", "🤞", "🤟", "🤘", "👋", "🖖",
   "👈", "👉", "👆", "🖕", "👇", "☝", "🫵",
@@ -9,7 +9,7 @@ const char* funny_emoji_list[] = {
   "🥸", "🤓", "😈", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️"
 };
 
-const size_t emoji_count = 5; // max - 8
+const int emojiCount = 5; // max - 8
 const long interval = 5 * 60 * 1000;  // in minutes
 const char* ssid = "SmartHomeGateway";
 const char* password = "0a2b3c4f";
@@ -18,32 +18,34 @@ void startSoftAP() {
   WiFi.softAPdisconnect(true);
   delay(2000);  // Allow time for disconnection
 
-  char randomString[(emoji_count * 4) + 1]; // one emoji - 4 bytes
-  generateRandomEmojiString(randomString, emoji_count);
+  char randomString[(emojiCount * 4) + 1]; // one emoji - 4 bytes
+  generateRandomEmojiString(randomString, emojiCount);
 
   WiFi.softAP(randomString);
 }
 
 void generateRandomEmojiString(char* result, size_t length) {
   srand(millis());  // Seed the random number generator
-  int emoji_count = sizeof(funny_emoji_list) / sizeof(funny_emoji_list[0]);
-  int used_indices[emoji_count];
 
-  for (int i = 0; i < emoji_count; ++i) {
-    used_indices[i] = 0;  // Initialize all indices as unused
+  int emojiCountInList = sizeof(emojiList) / sizeof(emojiList[0]);
+  int usedIndices[emojiCountInList];
+
+  for (int i = 0; i < emojiCountInList; ++i) {
+    usedIndices[i] = 0;  // Initialize all indices as unused
   }
 
   for (size_t i = 0; i < length; ++i) {
     int randomIndex;
-    do {
-      randomIndex = rand() % emoji_count;
-    } while (used_indices[randomIndex]);  // Ensure the emoji hasn't been used
 
-    used_indices[randomIndex] = 1;  // Mark the emoji as used
-    result[i * 4] = funny_emoji_list[randomIndex][0];
-    result[i * 4 + 1] = funny_emoji_list[randomIndex][1];
-    result[i * 4 + 2] = funny_emoji_list[randomIndex][2];
-    result[i * 4 + 3] = funny_emoji_list[randomIndex][3];
+    while (usedIndices[randomIndex]) { // Ensure the emoji hasn't been used
+      randomIndex = rand() % emojiCountInList;
+    }
+
+    usedIndices[randomIndex] = 1;  // Mark the emoji as used
+    result[i * 4] = emojiList[randomIndex][0];
+    result[i * 4 + 1] = emojiList[randomIndex][1];
+    result[i * 4 + 2] = emojiList[randomIndex][2];
+    result[i * 4 + 3] = emojiList[randomIndex][3];
   }
 
   result[length * 4] = '\0';  // Null-terminate the string
